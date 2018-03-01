@@ -1,0 +1,5 @@
+connexion == 1.1.9
+python_dateutil == 2.6.0
+setuptools >= 21.0.0
+weasyprint == 0.42.2
+python-magic == 0.4.15
