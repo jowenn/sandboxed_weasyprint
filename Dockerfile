@@ -1,17 +1,20 @@
-FROM debian:buster-slim as base
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential python3-dev python3-pip python3-cffi libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info file && useradd -d /sandboxed_weasyprint sandboxed_weasyprint
-COPY requirements.txt /sandboxed_weasyprint/
+FROM python:3.10.4-slim-bullseye as base
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-pip python3-cffi libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 shared-mime-info file && useradd -d /sandboxed_weasyprint sandboxed_weasyprint
 WORKDIR /sandboxed_weasyprint
-RUN pip3 install --no-cache-dir -r ./requirements.txt
 
-FROM scratch as collected
-COPY controllers /collected/controllers/
-COPY models /collected/models/
-COPY swagger /collected/swagger/
-COPY encoder.py sandboxed_weasyprint.py util.py /collected/
+
+FROM base as build
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential python3-dev libffi-dev
+COPY requirements.txt /sandboxed_weasyprint/
+RUN mkdir wheels && cd wheels && pip wheel -r ../requirements.txt
 
 FROM base
-COPY --from=collected /collected /sandboxed_weasyprint
+COPY --from=build /sandboxed_weasyprint/wheels /sandboxed_weasyprint/wheels
+RUN pip3 install /sandboxed_weasyprint/wheels/* && rm -rf /sandboxed_weasyprint/wheels && apt-get clean autoclean && apt-get autoremove --yes && rm -rf /var/lib/{apt,dpkg,cache,log}/ 
 WORKDIR /sandboxed_weasyprint
+COPY swagger_server /sandboxed_weasyprint/swagger_server/
 USER sandboxed_weasyprint
-CMD ["python3","./sandboxed_weasyprint.py"]
+
+ENTRYPOINT ["python3"]
+
+CMD ["-m", "swagger_server"]

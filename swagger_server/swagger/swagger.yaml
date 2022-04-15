@@ -1,0 +1,74 @@
+openapi: 3.0.1
+info:
+  title: Sandboxed Weasyprint
+  description: "Sandboxed Weasyprint, only use external files provided within the\
+    \ call"
+  termsOfService: https://localhost
+  contact:
+    email: jowenn@jowenn.net
+  license:
+    name: MIT
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.0.1
+servers:
+- url: http://sandboxed_weasyprint/v1
+tags:
+- name: html2pdf
+  description: Converts html to pdf
+  externalDocs:
+    description: Find out more
+    url: https://www.jowenn.net
+paths:
+  /html2pdf:
+    post:
+      tags:
+      - html2pdf
+      summary: Convert html with addtional files to pdf
+      operationId: html2pdf
+      requestBody:
+        description: data for conversion
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/body'
+        required: true
+      responses:
+        "200":
+          description: Returns PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "405":
+          description: Invalid input
+          content: {}
+      x-swagger-router-controller: controllers.html2pdf_controller
+      x-codegen-request-body-name: body
+      x-openapi-router-controller: swagger_server.controllers.html2pdf_controller
+components:
+  schemas:
+    html2pdf_extrafiles:
+      required:
+      - content
+      - name
+      type: object
+      properties:
+        name:
+          type: string
+        content:
+          type: string
+          format: binary
+    body:
+      required:
+      - basedocument
+      type: object
+      properties:
+        basedocument:
+          type: string
+          format: binary
+        extrafiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/html2pdf_extrafiles'
+

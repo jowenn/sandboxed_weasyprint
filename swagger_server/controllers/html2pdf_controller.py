@@ -1,9 +1,9 @@
 import connexion
-from models.body import Body
+from swagger_server.models.body import Body
 from datetime import date, datetime
 from typing import List, Dict
 from six import iteritems
-from util import deserialize_date, deserialize_datetime
+from swagger_server.util import deserialize_date, deserialize_datetime
 from weasyprint import HTML
 import base64
 import magic
